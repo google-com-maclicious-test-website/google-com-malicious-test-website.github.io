@@ -10,61 +10,59 @@ function buildPaymentRequest() {
     return null;
   }
 
-  var supportedInstruments = [
-    {
-      supportedMethods: ['https://android.com/pay'],
+  var supportedInstruments = [{
+      supportedMethods: 'https://google.com/pay',
       data: {
-        merchantName: 'Rouslan Solomakhin',
-        merchantId: '00184145120947117657',
-        allowedCardNetworks: ['AMEX', 'MASTERCARD', 'VISA', 'DISCOVER'],
-        paymentMethodTokenizationParameters: {
-          tokenizationType: 'GATEWAY_TOKEN',
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      allowedPaymentMethods: [{
+        type: 'CARD',
+        parameters: {
+          allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+          allowedCardNetworks: ['AMEX', 'DISCOVER', 'INTERAC', 'JCB', 'VISA', 'MASTERCARD'],
+        },
+        tokenizationSpecification: {
+          type: 'PAYMENT_GATEWAY',
           parameters: {
             'gateway': 'stripe',
+            // Please use your own Stripe public key.
             'stripe:publishableKey': 'pk_live_lNk21zqKM2BENZENh3rzCUgo',
-            'stripe:version': '2016-07-06'
-          }
-        }
-      }
+            'stripe:version': '2016-07-06',
+          },
+        },
+      }],
+      transactionInfo: {
+        countryCode: 'US',
+        currencyCode: 'USD',
+        totalPriceStatus: 'FINAL',
+        totalPrice: '0.01',
+      },
+      // Please use your own Google Pay merchant ID.
+      merchantInfo: {
+        merchantName: 'Rouslan Solomakhin',
+        merchantId: '00184145120947117657',
+      },
     },
-    {
-      supportedMethods: [
-        'unionpay', 'visa', 'mastercard', 'amex', 'discover', 'diners', 'jcb'
-      ]
-    }
-  ];
+  }];
 
   var details = {
-    total: {label: 'Donation', amount: {currency: 'USD', value: '55.00'}},
-    displayItems: [
-      {
-        label: 'Original donation amount',
-        amount: {currency: 'USD', value: '65.00'}
-      },
-      {
-        label: 'Friends and family discount',
-        amount: {currency: 'USD', value: '-10.00'}
-      }
-    ],
-    modifiers: [{
-      supportedMethods: ['visa'],
-      total: {label: 'Donation', amount: {currency: 'USD', value: '45.00'}},
-      additionalDisplayItems: [{
-        label: 'VISA discount', amount: {currency: 'USD', value: '-10.00'}
-      }],
-      data: {
-        discountProgramParticipantId: '86328764873265'
-      }
-    }]
+    total: {label: 'TEST', amount: {currency: 'USD', value: '0.01'}},
   };
 
   var request = null;
 
   try {
     request = new PaymentRequest(supportedInstruments, details);
-    if (request.canMakeActivePayment) {
-      request.canMakeActivePayment().then(function(result) {
-        info(result ? "Can make active payment" : "Cannot make active payment");
+    if (request.canMakePayment) {
+      request.canMakePayment().then(function(result) {
+        info(result ? "Can make payment" : "Cannot make payment");
+      }).catch(function(err) {
+        error(err);
+      });
+    }
+    if (request.hasEnrolledInstrument) {
+      request.hasEnrolledInstrument().then(function(result) {
+        info(result ? "Has enrolled instrument" : "No enrolled instrument");
       }).catch(function(err) {
         error(err);
       });
